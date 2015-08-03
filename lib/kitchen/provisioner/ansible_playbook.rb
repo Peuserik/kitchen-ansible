@@ -65,7 +65,6 @@ module Kitchen
         end
       end
 
-
       def install_command
         if config[:require_ansible_omnibus]
           cmd = install_omnibus_command
@@ -170,7 +169,6 @@ module Kitchen
               fi
 	    fi
           INSTALL
-  	  info("Install ruby command ready") 
         elsif require_chef_for_busser && chef_url then
           install << <<-INSTALL
             # install chef omnibus so that busser works as this is needed to run tests :(
