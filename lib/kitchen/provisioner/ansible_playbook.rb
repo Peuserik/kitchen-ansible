@@ -65,6 +65,7 @@ module Kitchen
         end
       end
 
+
       def install_command
         if config[:require_ansible_omnibus]
           cmd = install_omnibus_command
@@ -76,6 +77,9 @@ module Kitchen
           when "debian", "ubuntu"
             info("Installing ansible on #{ansible_platform}")
             cmd = install_debian_command
+          when "opensuse"
+            info("Installing ansible on #{ansible_platform}")
+            cmd = install_suse_command
           when "redhat", "centos", "fedora"
             info("Installing ansible on #{ansible_platform}")
             cmd = install_redhat_command
@@ -145,6 +149,10 @@ module Kitchen
                 #{update_packages_redhat_cmd}
                 #{sudo('yum')} -y install ruby ruby-devel gcc
             fi
+            elif [ -f /etc/SuSE-release ]; then
+                #{update_packages_suse_cmd}
+                #{sudo('zypper')} --non-interactive install ruby ruby-devel ca-certificates ca-certificates-cacert ca-certificates-mozilla
+		#{sudo('gem')} sources --add https://rubygems.org/ 
             else
               if [ ! $(which ruby) ]; then
                 #{update_packages_debian_cmd}
@@ -160,9 +168,9 @@ module Kitchen
                 fi
                 #{sudo('apt-get')} -y install $PACKAGES
               fi
-           fi
-           INSTALL
-
+	    fi
+          INSTALL
+  	  info("Install ruby command ready") 
         elsif require_chef_for_busser && chef_url then
           install << <<-INSTALL
             # install chef omnibus so that busser works as this is needed to run tests :(
@@ -174,8 +182,8 @@ module Kitchen
             fi
             INSTALL
         end
-
         install
+	#info(install)
       end
 
       def init_command
@@ -292,8 +300,12 @@ module Kitchen
             #{update_packages_redhat_cmd}
             #{sudo('yum')} -y install libselinux-python python2-devel git python-setuptools python-setuptools-dev
           else
-            #{update_packages_debian_cmd}
-            #{sudo('apt-get')} -y install git python python-setuptools build-essential python-dev
+	    if [ -f /etc/SUSE-brand ] || [ -f /etc/SuSE-release ]; then
+              #{update_packages_suse_cmd}
+              #{sudo('zypper')} --non-interactive install python python-devel git python-setuptools python-pip
+            else
+              #{update_packages_debian_cmd}
+              #{sudo('apt-get')} -y install git python python-setuptools build-essential python-dev
           fi
 
           git clone git://github.com/ansible/ansible.git --recursive #{config[:root_path]}/ansible
@@ -345,6 +357,15 @@ module Kitchen
           #{sudo('add-apt-repository')} -y #{ansible_apt_repo} || #{sudo('add-apt-repository')} #{ansible_apt_repo}
           #{sudo('apt-get')} update
           #{sudo('apt-get')} -y install ansible
+        fi
+        INSTALL
+      end
+
+      def install_suse_command
+        <<-INSTALL
+        if [ ! $(which ansible) ]; then
+          #{update_packages_suse_cmd}
+          #{sudo('zypper')} install -y ansible
         fi
         INSTALL
       end
@@ -492,6 +513,10 @@ module Kitchen
         config[:update_package_repos] ? "#{sudo('apt-get')} update" : nil
       end
 
+      def update_packages_suse_cmd
+        config[:update_package_repos] ? "#{sudo('zypper')} ref" : nil
+      end
+
       def update_packages_redhat_cmd
         config[:update_package_repos] ? "#{sudo('yum')} makecache" : nil
       end
@@ -529,6 +554,10 @@ module Kitchen
 
       def ansible_yum_repo
         config[:ansible_yum_repo]
+      end
+
+      def ansible_zypper_repo
+	config[:ansible_zypper_repo]
       end
 
       def chef_url

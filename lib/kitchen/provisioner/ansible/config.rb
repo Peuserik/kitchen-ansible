@@ -43,6 +43,7 @@ module Kitchen
         default_config :tags, []
         default_config :ansible_apt_repo, "ppa:ansible/ansible"
         default_config :ansible_yum_repo, "https://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm"
+	default_config :ansible_zypper_repo, ""
         default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
         default_config :require_chef_for_busser, false
         default_config :require_ruby_for_busser, true
