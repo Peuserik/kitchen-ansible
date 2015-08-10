@@ -527,7 +527,7 @@ module Kitchen
       end
 
       def update_packages_suse_cmd
-        config[:update_package_repos] ? "#{sudo('zypper')} ref --no-gpg-checks" : nil
+        config[:update_package_repos] ? "#{sudo('zypper')} ref" : nil
       end
 
       def update_packages_redhat_cmd
