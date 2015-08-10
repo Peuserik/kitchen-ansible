@@ -79,6 +79,9 @@ module Kitchen
           when "opensuse"
             info("Installing ansible on #{ansible_platform}")
             cmd = install_suse_command
+	   when "sles"
+            info("Installing ansible on #{ansible_platform}")
+            cmd = install_sles_command
           when "redhat", "centos", "fedora"
             info("Installing ansible on #{ansible_platform}")
             cmd = install_redhat_command
@@ -359,14 +362,26 @@ module Kitchen
         INSTALL
       end
 
+      def install_sles_command
+        <<-INSTALL
+        if [ ! $(which ansible) ]; then
+	  #{sudo('zypper')} ar #{python_sles_repo}
+          #{sudo('zypper')} ar #{ansible_sles_repo}
+	  #{update_packages_suse_cmd}
+          #{sudo('zypper')} --non-interactive --no-gpg-checks install ansible
+        fi
+        INSTALL
+      end
+
       def install_suse_command
         <<-INSTALL
         if [ ! $(which ansible) ]; then
           #{update_packages_suse_cmd}
-          #{sudo('zypper')} install -y ansible
+          #{sudo('zypper')} --non-interactive install ansible
         fi
         INSTALL
       end
+
 
       def install_redhat_command
         <<-INSTALL
@@ -512,7 +527,7 @@ module Kitchen
       end
 
       def update_packages_suse_cmd
-        config[:update_package_repos] ? "#{sudo('zypper')} ref" : nil
+        config[:update_package_repos] ? "#{sudo('zypper')} ref --no-gpg-checks" : nil
       end
 
       def update_packages_redhat_cmd
@@ -554,8 +569,12 @@ module Kitchen
         config[:ansible_yum_repo]
       end
 
-      def ansible_zypper_repo
-	config[:ansible_zypper_repo]
+      def ansible_sles_repo
+	config[:ansible_sles_repo]
+      end
+
+      def python_sles_repo
+        config[:python_sles_repo]
       end
 
       def chef_url
