@@ -527,7 +527,7 @@ module Kitchen
       end
 
       def update_packages_suse_cmd
-        config[:update_package_repos] ? "#{sudo('zypper')} ref" : nil
+        config[:update_package_repos] ? "#{sudo('zypper')} --gpg-auto-import-keys ref" : nil
       end
 
       def update_packages_redhat_cmd
