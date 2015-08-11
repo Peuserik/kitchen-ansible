@@ -76,12 +76,9 @@ module Kitchen
           when "debian", "ubuntu"
             info("Installing ansible on #{ansible_platform}")
             cmd = install_debian_command
-          when "opensuse"
+          when "suse"
             info("Installing ansible on #{ansible_platform}")
             cmd = install_suse_command
-	   when "sles"
-            info("Installing ansible on #{ansible_platform}")
-            cmd = install_sles_command
           when "redhat", "centos", "fedora"
             info("Installing ansible on #{ansible_platform}")
             cmd = install_redhat_command
@@ -98,6 +95,8 @@ module Kitchen
                 else
                   #{install_amazon_linux_command}
                 fi
+              elif [ -f /etc/SuSE-release ] || [ -f /etc/SUSE-brand ]; then
+                #{install_suse_command}
               else
                 #{install_debian_command}
               fi
@@ -362,7 +361,7 @@ module Kitchen
         INSTALL
       end
 
-      def install_sles_command
+      def install_suse_command
         <<-INSTALL
         if [ ! $(which ansible) ]; then
 	  #{sudo('zypper')} ar #{python_sles_repo}
@@ -372,16 +371,6 @@ module Kitchen
         fi
         INSTALL
       end
-
-      def install_suse_command
-        <<-INSTALL
-        if [ ! $(which ansible) ]; then
-          #{update_packages_suse_cmd}
-          #{sudo('zypper')} --non-interactive install ansible
-        fi
-        INSTALL
-      end
-
 
       def install_redhat_command
         <<-INSTALL
